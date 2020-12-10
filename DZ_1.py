@@ -80,4 +80,3 @@ class ParCatalog(Parse5ka):
 if __name__ == '__main__':
     parser = ParCatalog('https://5ka.ru/api/v2/special_offers/', 'https://5ka.ru/api/v2/categories/')
     parser.run()
-
