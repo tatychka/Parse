@@ -3,12 +3,7 @@ import requests
 import bs4
 from urllib.parse import urljoin
 # совмещение юрлов
-product = {
-            'url': lambda soup: '',
-            'promo_name': '',
-            'product_name': '',
-            'image_url': '',
-        }
+
 class MagnitParse:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0'
