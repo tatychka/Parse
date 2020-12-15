@@ -1,8 +1,13 @@
+import os
 import time
 import requests
 import bs4
 from urllib.parse import urljoin
 # совмещение юрлов
+import pymongo
+import dotenv
+
+
 
 class MagnitParse:
     headers = {
@@ -11,6 +16,8 @@ class MagnitParse:
 
     def __init__(self, start_url):
         self.start_url = start_url
+        client = pymongo.MongoClient('mongodb://localhost:27017')
+        self.db = client['parse_magnit']
 
         self.product_template = {
             'url': lambda soup: urljoin(self.start_url, soup.get('href')),
@@ -52,10 +59,15 @@ class MagnitParse:
 
         result = {}
         for key, value in self.product_template.items():
-            result[key] = value(product_soup)
+            try:
+                result[key] = value(product_soup)
+            except Exception as e:
+                continue
         return result
 
     def save(self, product):
+        collection = self.db['parse_magnit']
+        collection.insert_one(product)
         print(1)
 
 
