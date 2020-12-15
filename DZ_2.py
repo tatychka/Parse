@@ -1,13 +1,27 @@
-import os
+import datetime as dt
 import time
 import requests
 import bs4
 from urllib.parse import urljoin
 # совмещение юрлов
 import pymongo
-import dotenv
 
 
+MONTHS = {
+    "янв": 1,
+    "фев": 2,
+    "мар": 3,
+    "апр": 4,
+    "май": 5,
+    "мая": 5,
+    "июн": 6,
+    "июл": 7,
+    "авг": 8,
+    "сен": 9,
+    "окт": 10,
+    "ноя": 11,
+    "дек": 12,
+}
 
 class MagnitParse:
     headers = {
@@ -18,13 +32,6 @@ class MagnitParse:
         self.start_url = start_url
         client = pymongo.MongoClient('mongodb://localhost:27017')
         self.db = client['parse_magnit']
-
-        self.product_template = {
-            'url': lambda soup: urljoin(self.start_url, soup.get('href')),
-            'promo_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__header'}).text,
-            'product_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__title'}).text,
-            'image_url': lambda soup: urljoin(self.start_url, soup.find('img').get('data-src')),
-        }
 
     @staticmethod
     def _get(*args, **kwargs):
@@ -46,24 +53,50 @@ class MagnitParse:
         soup = self.soup(self.start_url)
         for product in self.parse(soup):
             self.save(product)
-            print(1)
 
     def parse(self, soup) -> dict:
         catalog = soup.find('div', attrs={'class': 'сatalogue__main'})
 
         for product in catalog.find_all('a', recursive=False):
-            pr_data = self.get_product(product)
+            try:
+                pr_data = self.get_product(product)
+            except AttributeError:
+                continue
             yield pr_data
 
     def get_product(self, product_soup):
+        dt_parser = self.date_parse(product_soup.find('div', attrs={'class': 'card-sale__date'}).text)
+
+        product_template = {
+            'url': lambda soup: urljoin(self.start_url, soup.get('href')),
+            'promo_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__header'}).text,
+            'product_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__title'}).text,
+
+            'old_price': lambda soups: float(
+                '.'.join(itm for itm in soups.find('div', attrs={'class': 'label__price_old'}).text.split())),
+
+            'new_price': lambda soups: float(
+                '.'.join(itm for itm in soups.find('div', attrs={'class': 'label__price_new'}).text.split())),
+
+            'image_url': lambda soup: urljoin(self.start_url, soup.find('img').get('data-src')),
+            'data_from': lambda _: next(dt_parser),
+            'data_to': lambda _: next(dt_parser),
+        }
 
         result = {}
-        for key, value in self.product_template.items():
+        for key, value in product_template.items():
             try:
                 result[key] = value(product_soup)
-            except Exception as e:
+            except (AttributeError, ValueError, StopIteration):
                 continue
         return result
+
+    @staticmethod
+    def date_parse(date_string: str):
+        date_list = date_string.replace('c', '', 1).replace('\n', '').split('до')
+        for date in date_list:
+            temp_date = date.split()
+            yield dt.datetime(year=dt.datetime.now().year, day=int(temp_date[0]), month=MONTHS[temp_date[1][:3]])
 
     def save(self, product):
         collection = self.db['parse_magnit']
