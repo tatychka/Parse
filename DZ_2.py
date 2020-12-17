@@ -72,15 +72,15 @@ class MagnitParse:
             'promo_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__header'}).text,
             'product_name': lambda soup: soup.find('div', attrs={'class': 'card-sale__title'}).text,
 
-            'old_price': lambda soups: float(
-                '.'.join(itm for itm in soups.find('div', attrs={'class': 'label__price_old'}).text.split())),
+            'old_price': lambda soup: float(
+                '.'.join(itm for itm in soup.find('div', attrs={'class': 'label__price_old'}).text.split())),
 
-            'new_price': lambda soups: float(
-                '.'.join(itm for itm in soups.find('div', attrs={'class': 'label__price_new'}).text.split())),
+            'new_price': lambda soup: float(
+                '.'.join(itm for itm in soup.find('div', attrs={'class': 'label__price_new'}).text.split())),
 
             'image_url': lambda soup: urljoin(self.start_url, soup.find('img').get('data-src')),
-            'data_from': lambda _: next(dt_parser),
-            'data_to': lambda _: next(dt_parser),
+            'date_from': lambda _: next(dt_parser),
+            'date_to': lambda _: next(dt_parser),
         }
 
         result = {}
