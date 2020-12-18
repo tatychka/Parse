@@ -24,6 +24,9 @@ class GbBlogParse:
             posts, pagination = self.parse(soup)
 
     def parse(self, soup):
+        pag_ul = soup.find('ul', attrs={'class':'gb__pagination'})
+
+
         print(1)
 
 
