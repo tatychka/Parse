@@ -2,6 +2,7 @@ from typing import Tuple
 import bs4
 import requests
 from urllib.parse import urljoin
+from database import GBDataBase
 
 
 class GbBlogParse:
@@ -9,6 +10,7 @@ class GbBlogParse:
     def __init__(self, start_url):
         self.start_url = start_url
         self.page_done = set()
+        self.db = GBDataBase('sqlite:///gb_blog2.db')
 
     def _get(self, url):
         response = requests.get(url)
@@ -51,7 +53,7 @@ class GbBlogParse:
 
 
     def save(self, post_data: dict):
-        print(1)
+        self.db.create_post(post_data)
 
 if __name__ ==  '__main__':
     parser = GbBlogParse('https://geekbrains.ru/posts')

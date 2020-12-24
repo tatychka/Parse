@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 # Задекларировали
 Base = declarative_base()
-№
+
 class Post(Base):
     __tablename__ = 'post'
     id = Column(Integer, primary_key=True, autoincrement=True)
